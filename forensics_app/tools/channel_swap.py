@@ -1,7 +1,9 @@
 import tkinter as tk
 import numpy as np
+import io
 
 from PIL import Image
+import matplotlib.pyplot as plt
 
 from forensics_app.core import ImageDocument
 from .base import ForensicsTool, ToolResult
@@ -37,7 +39,7 @@ class ChannelSwapTool(ForensicsTool):
             label1.pack(padx=10, pady=10)
             frame1.pack()
             # label2 = tk.Label(frame2, text='Select the type of channel swap:')
-            b1 = tk.Button(frame2, text='Red-Green', command=lambda: on_select(1))
+            b1 = tk.Button(frame2,text='Red-Green', command=lambda: on_select(1))
             b2 = tk.Button(frame2,text='Red-Blue',command=lambda: on_select(2))
             b3 = tk.Button(frame2,text='Green-Blue',command=lambda: on_select(3))
 
@@ -57,7 +59,7 @@ class ChannelSwapTool(ForensicsTool):
 
         assert document.current is not None
 
-        # im = document.current
+        fig, ax = plt.subplots(1,2, figsize=(6, 4), dpi=100)
         im = np.array(document.current)
 
         im2 = im.copy()
@@ -66,22 +68,33 @@ class ChannelSwapTool(ForensicsTool):
         if swap_type == 1:
             im2[:,:,0]=im[:,:,1]
             im2[:,:,1]=im[:,:,0]
+            outtext = 'Red-Green'
         elif swap_type == 2:
             im2[:,:,0]=im[:,:,2]
             im2[:,:,2]=im[:,:,0]
+            outtext = 'Red-Blue'
         else:
             im2[:,:,1]=im[:,:,2]
             im2[:,:,2]=im[:,:,1]
+            outtext = 'Green-Blue'
 
-        im = Image.fromarray(im)
-        im2 = Image.fromarray(im2)
-        w = im.size[0]
-        w2 = im.size[0]*2 + 10
-        h = im.size[1]
-        im3 = Image.new("RGB",(w2,h))
-        im3.paste(im)
-        im3.paste(im2,(w+10, 0))
+        ax[0].imshow(im)
+        ax[0].set_title("Original image")
+        ax[0].axis('off')
 
+        ax[1].imshow(im2)
+        ax[1].set_title(outtext+' swapped')
+        ax[1].axis('off')
+        fig.tight_layout()
+
+        # Render Figure to In-Memory Buffer and decode into PIL Image
+        buf = io.BytesIO()
+        fig.savefig(buf, format='png')
+        buf.seek(0)
+        output = Image.open(buf).convert("RGB")
+
+        # Cleanup Matplotlib resources
+        plt.close(fig)
 
 
         # r, g, b = im.split()
@@ -89,11 +102,8 @@ class ChannelSwapTool(ForensicsTool):
         # im3 = Image.merge("RGB",(g,r,b))
 
 
-        output = im3
-
-
         return ToolResult(
             image=output,
             message="Channel swap between RGB channels.",
-            details={"Operation": "Channel Swap."},
+            details={"Operation": "Channel Swap", "Type": outtext},
         )

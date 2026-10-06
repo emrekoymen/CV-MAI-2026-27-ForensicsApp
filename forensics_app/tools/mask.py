@@ -105,5 +105,5 @@ class MaskTool(ForensicsTool):
         return ToolResult(
             image=output,
             message="Apply a mask to an image.",
-            details={"Operation": "Masking."},
+            details={"Operation": "Masking"},
         )

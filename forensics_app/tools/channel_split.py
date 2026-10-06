@@ -5,6 +5,9 @@
 
 import tkinter as tk
 from tkinter import simpledialog
+import numpy as np
+import matplotlib.pyplot as plt
+import io
 
 from PIL import Image
 
@@ -19,55 +22,49 @@ class ChannelSplitTool(ForensicsTool):
     description = "Split the image into individual RGB channels."
 
     def run(self, parent: tk.Misc, document: ImageDocument) -> ToolResult | None:
-        
+
         assert document.current is not None
-        # plt.figure(figsize=(16, 4))
-        # fig.add_subplot(1, 4, 1)
-        # plt.imshow(document.current)
-        # plt.title('Default image')
-        # fig.add_subplot(1, 4, 2)
-        # plt.imshow(document.current[:,:,0])
-        # fig.add_subplot(1, 4, 3)
-        # plt.imshow(document.current[:,:,1])
-        # fig.add_subplot(1, 4, 4)
-        # plt.imshow(document.current[:,:,2])
 
-        # im = np.array(document.current)
-        # r = im[:,:,0]
-        # g = im[:,:,1]
-        # b = im[:,:,2]
-        # w = im.size[0]+10
-        # w2 = im.size[0]*4
-        # h = im.size[1]
-        # im2 = Image.new("RGB",(w2,h))
-        # im = Image.fromarray(im)
-        # r = Image.fromarray(r)
-        # g = Image.fromarray(g)
-        # b = Image.fromarray(b)
-        # im2.paste(im)
-        # im2.paste(r,(w, 0))
-        # im2.paste(g,(w*2, 0))
-        # im2.paste(b,(w*3, 0))
-        
+        im = np.array(document.current)
+        r = im[:,:,0]
+        g = im[:,:,1]
+        b = im[:,:,2]
+
+
         # output = im2
-
-        
+        fig, ax = plt.subplots(1,4,figsize=(12, 4), dpi=100)
 
         im = document.current
-        
-        r, g, b = im.split()
-        w = im.size[0]+10
-        w2 = im.size[0]*4
-        h = im.size[1]
-        im2 = Image.new("RGB",(w2,h))
-        im2.paste(im)
-        im2.paste(r,(w, 0))
-        im2.paste(g,(w*2, 0))
-        im2.paste(b,(w*3, 0))
-        
-        output = im2
+
+        # r, g, b = im.split()
+
+        ax[0].imshow(im)
+        ax[0].set_title('Original')
+        ax[0].axis('off')
+        ax[1].imshow(r, cmap='gray')
+        ax[1].set_title('Red Channel')
+        ax[1].axis('off')
+        ax[2].imshow(g, cmap='gray')
+        ax[2].set_title('Green Channel')
+        ax[2].axis('off')
+        ax[3].imshow(b, cmap='gray')
+        ax[3].set_title('Blue Channel')
+        ax[3].axis('off')
+        fig.tight_layout()
+
+        # output = im2
+
+        # Render Figure to In-Memory Buffer and decode into PIL Image
+        buf = io.BytesIO()
+        fig.savefig(buf, format='png')
+        buf.seek(0)
+        output = Image.open(buf).convert("RGB")
+
+        # Cleanup Matplotlib resources
+        plt.close(fig)
+
         return ToolResult(
             image=output,
             message="Image split into individual RGB channels.",
-            details={"Operation": "Channel Split."},
+            details={"Operation": "Channel Split"},
         )
