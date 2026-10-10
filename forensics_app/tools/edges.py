@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import simpledialog, messagebox
+from tkinter import simpledialog
 
 import numpy as np
 from PIL import Image
@@ -39,7 +39,7 @@ class EdgeTool(ForensicsTool):
                     im = rgba2rgb(im)
             im = rgb2gray(im)
         im = img_as_float(im)
-        edges = feature.canny(im, sigma=2)
+        edges = feature.canny(im, sigma=sigma)
         rgb = gray2rgb(im)
         red_edges = rgb.copy()
         red_edges[edges] = [1, 0, 0]

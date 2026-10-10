@@ -55,11 +55,12 @@ class ChannelSwapTool(ForensicsTool):
             return swap_type
 
         swap_type = open_button_dialog()
+        if swap_type == 0:
+            return None  # dialog closed without choosing
 
 
         assert document.current is not None
 
-        fig, ax = plt.subplots(1,2, figsize=(6, 4), dpi=100)
         im = np.array(document.current)
 
         im2 = im.copy()
@@ -78,6 +79,7 @@ class ChannelSwapTool(ForensicsTool):
             im2[:,:,2]=im[:,:,1]
             outtext = 'Green-Blue'
 
+        fig, ax = plt.subplots(1,2, figsize=(6, 4), dpi=100)
         ax[0].imshow(im)
         ax[0].set_title("Original image")
         ax[0].axis('off')

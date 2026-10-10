@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import simpledialog, messagebox
+from tkinter import simpledialog
 
 import numpy as np
 from PIL import Image
@@ -32,17 +32,26 @@ class SharpeningTool(ForensicsTool):
         if radius is None:
             return None
 
-        im = img_as_float(np.array(document.current))
+        im = np.array(document.current)
+        alpha = None
+        if im.ndim == 3 and im.shape[2] == 4:  # keep transparency untouched
+            alpha = im[:, :, 3:]
+            im = im[:, :, :3]
+        im = img_as_float(im)
 
         sharpened_skimage = filters.unsharp_mask(
             im,
             radius = radius,
             amount = 1.5,
+            channel_axis = 2 if im.ndim == 3 else None,  # per colour channel (negative axis is buggy in skimage 0.26)
         )
 
 
         sharpened_clipped = np.clip(sharpened_skimage, 0.0, 1.0)
-        output = Image.fromarray(img_as_ubyte(sharpened_clipped))
+        sharpened = img_as_ubyte(sharpened_clipped)
+        if alpha is not None:
+            sharpened = np.concatenate([sharpened, alpha], axis=2)
+        output = Image.fromarray(sharpened)
 
 
         return ToolResult(
