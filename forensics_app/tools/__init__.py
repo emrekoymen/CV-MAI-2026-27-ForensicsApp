@@ -9,6 +9,11 @@ from .channel_swap import ChannelSwapTool
 from .histogram import HistogramTool
 from .contrast_stretching import ContrastStretchingTool
 from .mask import MaskTool
+from .sharpening import SharpeningTool
+from .edges import EdgeTool
+from .convolution import ConvolutionTool
+from .filters import FiltersTool
+from .canny import CannyTool
 
 
 def build_tool_registry() -> ToolRegistry:
@@ -22,6 +27,11 @@ def build_tool_registry() -> ToolRegistry:
             HistogramTool(),
             ContrastStretchingTool(),
             MaskTool(),
+            EdgeTool(),
+            SharpeningTool(),
+            ConvolutionTool(),
+            FiltersTool(),
+            CannyTool(),
         ]
     )
 
