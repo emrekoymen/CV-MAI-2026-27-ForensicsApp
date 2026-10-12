@@ -1,18 +1,30 @@
 # Channel Split
 
-#  WARNING! CHECK HOW TO AVOID DOUBLE SPLITS
-# Error message when trying to split after grayscale?
-
 import tkinter as tk
 from tkinter import simpledialog
 import numpy as np
-import matplotlib.pyplot as plt
-import io
 
 from PIL import Image
 
 from forensics_app.core import ImageDocument
 from .base import ForensicsTool, ToolResult
+from .panels import make_grid
+
+
+def split_channels(image: Image.Image | np.ndarray) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Return the red, green and blue channels of an RGB(A) image as 2-D arrays."""
+    pixels = np.asarray(image)
+    if pixels.ndim != 3 or pixels.shape[2] < 3:
+        if isinstance(image, Image.Image):      # "is this a PIL image?"
+            mode = image.mode                   # e.g. "L"
+        else:                                   # otherwise it's a NumPy array
+            mode = f"array {pixels.shape}"      # e.g. "array (4, 4)"
+        # The main window shows this message in an error dialog
+        raise ValueError(
+            f"Channel split needs a colour image, but the current image is "
+            f"'{mode}' and has no RGB channels to split."
+        )
+    return pixels[:, :, 0], pixels[:, :, 1], pixels[:, :, 2]
 
 
 class ChannelSplitTool(ForensicsTool):
@@ -25,43 +37,14 @@ class ChannelSplitTool(ForensicsTool):
 
         assert document.current is not None
 
-        im = np.array(document.current)
-        r = im[:,:,0]
-        g = im[:,:,1]
-        b = im[:,:,2]
+        r, g, b = split_channels(document.current)
 
-
-        # output = im2
-        fig, ax = plt.subplots(1,4,figsize=(12, 4), dpi=100)
-
-        im = document.current
-
-        # r, g, b = im.split()
-
-        ax[0].imshow(im)
-        ax[0].set_title('Original')
-        ax[0].axis('off')
-        ax[1].imshow(r, cmap='gray')
-        ax[1].set_title('Red Channel')
-        ax[1].axis('off')
-        ax[2].imshow(g, cmap='gray')
-        ax[2].set_title('Green Channel')
-        ax[2].axis('off')
-        ax[3].imshow(b, cmap='gray')
-        ax[3].set_title('Blue Channel')
-        ax[3].axis('off')
-        fig.tight_layout()
-
-        # output = im2
-
-        # Render Figure to In-Memory Buffer and decode into PIL Image
-        buf = io.BytesIO()
-        fig.savefig(buf, format='png')
-        buf.seek(0)
-        output = Image.open(buf).convert("RGB")
-
-        # Cleanup Matplotlib resources
-        plt.close(fig)
+        # 2x2 grid at full resolution: Original, Red / Green, Blue
+        output = make_grid(
+            [("Original", np.asarray(document.current)), ("Red channel", r),
+             ("Green channel", g), ("Blue channel", b)],
+            columns=2,
+        )
 
         return ToolResult(
             image=output,
