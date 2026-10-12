@@ -151,7 +151,7 @@ class HistogramToolTests(unittest.TestCase):
     def test_colour_details_have_two_rows_per_channel(self):
         self.document.current = Image.new("RGB", (4, 3), (10, 20, 30))
         details = HistogramTool().run(None, self.document).details
-        self.assertEqual(details["Red min / max / mean"], "10 / 10 / 10.0")
+        self.assertEqual(details["Red min/max/mean"], "10/10/10.0")
         self.assertEqual(details["Blue empty bins"], "0 of 1")
         self.assertEqual(len(details), 1 + 3 * 2)  # Operation + 2 rows for each channel
 
