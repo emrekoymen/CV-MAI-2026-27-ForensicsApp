@@ -14,6 +14,9 @@ from .edges import EdgeTool
 from .convolution import ConvolutionTool
 from .filters import FiltersTool
 from .canny import CannyTool
+from .template_matching import CrossCorrelationTool, TemplateMatchingTool
+from .hog import HogTool
+from .person_detection import PersonDetectionTool
 
 
 def build_tool_registry() -> ToolRegistry:
@@ -32,6 +35,10 @@ def build_tool_registry() -> ToolRegistry:
             ConvolutionTool(),
             FiltersTool(),
             CannyTool(),
+            CrossCorrelationTool(),
+            TemplateMatchingTool(),
+            HogTool(),
+            PersonDetectionTool(),
         ]
     )
 
