@@ -84,9 +84,23 @@ class MainWindow:
         body = ttk.Panedwindow(container, orient="horizontal")
         body.pack(fill="both", expand=True)
 
-        sidebar = ttk.Frame(body, style="Sidebar.TFrame", padding=12, width=235)
-        sidebar.pack_propagate(False)
-        body.add(sidebar, weight=0)
+        outer = ttk.Frame(body, style="Sidebar.TFrame", width=235)
+        outer.pack_propagate(False)
+        body.add(outer, weight=0)
+        canvas = tk.Canvas(outer, background="#eef1f5", highlightthickness=0, yscrollincrement=20)
+        scrollbar = ttk.Scrollbar(outer, command=canvas.yview)
+        canvas.configure(yscrollcommand=scrollbar.set)
+        scrollbar.pack(side="right", fill="y")
+        canvas.pack(fill="both", expand=True)
+        sidebar = ttk.Frame(canvas, style="Sidebar.TFrame", padding=12)
+        window = canvas.create_window(0, 0, window=sidebar, anchor="nw")
+        sidebar.bind("<Configure>", lambda _event: canvas.configure(scrollregion=canvas.bbox("all")))
+        canvas.bind("<Configure>", lambda event: canvas.itemconfigure(window, width=event.width))
+
+        def scroll_sidebar(event):
+            if str(event.widget).startswith(str(canvas)):
+                canvas.yview_scroll(-1 if event.delta > 0 else 1, "units")
+        self.root.bind_all("<MouseWheel>", scroll_sidebar)
         ttk.Label(sidebar, text="Forensics tools", style="Title.TLabel", background="#eef1f5").pack(
             anchor="w", pady=(0, 12)
         )
