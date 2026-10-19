@@ -29,6 +29,7 @@ class CrossCorrelationTool(ForensicsTool):
         return ToolResult(
             image=Image.fromarray(img_as_ubyte(exposure.rescale_intensity(ncc, out_range=(0, 1)))),
             message=f"Normalized cross-correlation, best score {ncc.max():.3f}.",
+            details={"Operation": "Cross-correlation", "Best score": f"{ncc.max():.3f}"},
         )
 
 
@@ -55,4 +56,5 @@ class TemplateMatchingTool(ForensicsTool):
         return ToolResult(
             image=Image.fromarray(img_as_ubyte(output)),
             message=f"{(ncc >= threshold).sum()} pixel(s) above {threshold:g} at angle {angle:g}.",
+            details={"Operation": "Template matching", "Angle": angle, "Threshold": threshold, "Pixels above th.": f"{(ncc >= threshold).sum()}"},
         )

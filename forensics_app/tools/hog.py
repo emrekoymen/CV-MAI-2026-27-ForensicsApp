@@ -27,4 +27,8 @@ class HogTool(ForensicsTool):
             np.array(document.current.convert("RGB")), orientations=orientations, pixels_per_cell=(cell, cell),
             cells_per_block=(block, block), visualize=True, channel_axis=-1)
         hog_image = exposure.rescale_intensity(hog_image, in_range=(0, hog_image.max() / 2 or 1), out_range=(0, 1))
-        return ToolResult(image=Image.fromarray(img_as_ubyte(hog_image)), message=f"Extracted {features.size} HOG features.")
+        return ToolResult(
+            image=Image.fromarray(img_as_ubyte(hog_image)),
+            message=f"Extracted {features.size} HOG features.",
+            details={"Operation": "HOG visualization", "Orientations": orientations, "Pixels/cell": cell, "Cells/block": block, "Features": features.size},
+        )

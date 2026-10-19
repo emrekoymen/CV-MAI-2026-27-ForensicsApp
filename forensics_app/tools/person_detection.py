@@ -45,4 +45,9 @@ class PersonDetectionTool(ForensicsTool):
             output = document.current.convert("RGB")
             ImageDraw.Draw(output).rectangle((j, i, j + width - 1, i + height - 1), outline="red", width=2)
             panels.append((label, np.array(output)))
-        return ToolResult(image=make_grid(panels, columns=2), message=f"Person detection (step {step}).")
+        return ToolResult(
+            image=make_grid(panels, columns=2),
+            message=f"Person detection (step {step}).",
+            details={"Operation": "Person detection", "Step": step, "Coordinates": "(row, column)", "Euclidean": best[0],
+            "Dot product": best[1]},
+        )
