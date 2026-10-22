@@ -17,6 +17,10 @@ from .canny import CannyTool
 from .template_matching import CrossCorrelationTool, TemplateMatchingTool
 from .hog import HogTool
 from .person_detection import PersonDetectionTool
+from .corner_detection import CornerDectectionTool
+from .descriptors import DescriptorsTool
+from .descriptor_matching import DescriptorMatchingTool
+from .closest_match import ClosestMatchTool
 
 
 def build_tool_registry() -> ToolRegistry:
@@ -39,6 +43,10 @@ def build_tool_registry() -> ToolRegistry:
             TemplateMatchingTool(),
             HogTool(),
             PersonDetectionTool(),
+            CornerDectectionTool(),
+            DescriptorsTool(),
+            DescriptorMatchingTool(),
+            ClosestMatchTool(),
         ]
     )
 
