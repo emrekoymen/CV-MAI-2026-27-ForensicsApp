@@ -1,16 +1,14 @@
-import tkinter as tk
-from tkinter import messagebox, simpledialog
-
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
-from skimage import feature
+from skimage import feature, measure, transform
 
 from .base import ForensicsTool, ToolResult
 from .mask import open_image
 
-EXTRACTOR_NAMES = ("ORB","SIFT")
 GAP = 10                   # pixels between the two images
 BACKGROUND = (40, 40, 40)
+MAX_RATIO = 0.8            # Lowe's ratio test value recommended for SIFT (D.G. Lowe, "Distinctive Image
+                           # Features from Scale-Invariant Keypoints", International Journal of Computer Vision, 2004)
 
 def descriptor_orb(image,n_keypoints=200):
     orb = feature.ORB(n_keypoints=n_keypoints)
@@ -27,7 +25,23 @@ def descriptor_match(descriptors1,descriptors2,cross_check=True,max_ratio=1.0):
         max_ratio=max_ratio)
     return matches
 
-def draw_matches(im1, im2, keypoints1, keypoints2, matches, labels=None):
+def ransac_inliers(keypoints1, keypoints2, matches):
+    """Return one bool per match: True if it fits the projective transform found by RANSAC.
+
+    All False when there are fewer than 4 matches or no transform could be found.
+    """
+    inliers = np.zeros(len(matches), dtype=bool)
+    if len(matches) >= 4:
+        # skimage transforms work in (x, y) = (col, row), so the keypoints are flipped
+        src = keypoints1[matches[:, 0]][:, ::-1]
+        dst = keypoints2[matches[:, 1]][:, ::-1]
+        _, found = measure.ransac((src, dst), transform.ProjectiveTransform,
+            min_samples=4, residual_threshold=2, max_trials=1000, rng=0)
+        if found is not None:
+            inliers = found
+    return inliers
+
+def draw_matches(im1, im2, keypoints1, keypoints2, matches, labels=None, inliers=None):
     """Place both images side by side, circle every keypoint and join matched pairs."""
 
     # Scale both images to the taller one's height, so a small image isn't dwarfed by a large one.
@@ -37,7 +51,7 @@ def draw_matches(im1, im2, keypoints1, keypoints2, matches, labels=None):
     im1 = im1.resize((round(im1.width * scale1), height))
     im2 = im2.resize((round(im2.width * scale2), height))
 
-    thickness = max(1, height // 400)
+    thickness = max(1, height // 200)
     radius = 4 * thickness
 
     offset = im1.width + GAP
@@ -68,14 +82,16 @@ def draw_matches(im1, im2, keypoints1, keypoints2, matches, labels=None):
     unmatched2[matches[:, 1]] = False
 
     for row, col in keypoints1[unmatched1]:
-        draw.circle(to_left(col, row), radius=radius, outline="red", width=2 * thickness)
+        draw.circle(to_left(col, row), radius=radius, outline="black", width=2 * thickness)
     for row, col in keypoints2[unmatched2]:
-        draw.circle(to_right(col, row), radius=radius, outline="red", width=2 * thickness)
+        draw.circle(to_right(col, row), radius=radius, outline="black", width=2 * thickness)
 
-    # A different color per match, so crossing lines can be told apart
-    colors = np.random.default_rng(0).integers(64, 256, size=(len(matches), 3))
+    if inliers is None:
+        # A different color per match, so crossing lines can be told apart
+        colors = [tuple(int(v) for v in c) for c in np.random.default_rng(0).integers(64, 256, size=(len(matches), 3))]
+    else:
+        colors = [(0, 200, 0) if inlier else (255, 0, 0) for inlier in inliers]
     for (r1, c1), (r2, c2), color in zip(matched1, matched2, colors):
-        color = tuple(int(v) for v in color)
         draw.circle(to_left(c1, r1), radius=radius, outline=color, width=2 * thickness)
         draw.circle(to_right(c2, r2), radius=radius, outline=color, width=2 * thickness)
         draw.line([to_left(c1, r1), to_right(c2, r2)], fill=color, width=thickness)
@@ -85,105 +101,29 @@ class DescriptorMatchingTool(ForensicsTool):
     tool_id = "descriptor_matching"
     title = "Descriptor Matching"
     category = "Detection and matching"
-    description = "Extract the descriptors from two images and match them."
-
-    def choose_extractor(self, parent):
-        dialog = tk.Toplevel(parent)
-        dialog.title("Select an extractor")
-        dialog.transient(parent)
-        dialog.grab_set()
-        choice = None
-
-        def select(name):
-            nonlocal choice
-            choice = name
-            dialog.destroy()
-
-        for name in EXTRACTOR_NAMES:
-            tk.Button(dialog, text=name, command=lambda v=name: select(v)).pack(fill="x", padx=12, pady=5)
-        dialog.wait_window()  # closing the window cancels
-        return choice
-
-    def choose_siftvalues(self, parent):
-        dialog = tk.Toplevel(parent)
-        dialog.title("SIFT values")
-        dialog.transient(parent)
-        dialog.grab_set()
-        tk.Label(
-            dialog,
-            text="Select values for SIFT",
-        ).grid(row=0, column=0, columnspan=2, padx=12, pady=(12, 6))
-        octaves_text = tk.StringVar(value="8")
-        scales_text = tk.StringVar(value="3")
-        sigma_text = tk.StringVar(value="1.6")
-
-        tk.Label(dialog, text="N. octaves:").grid(row=1, column=0, sticky="e", padx=(12, 4))
-        tk.Entry(dialog, textvariable=octaves_text, width=8).grid(row=1, column=1, sticky="w", padx=(0, 12))
-        tk.Label(dialog, text="N. scales:").grid(row=2, column=0, sticky="e", padx=(12, 4))
-        tk.Entry(dialog, textvariable=scales_text, width=8).grid(row=2, column=1, sticky="w", padx=(0, 12))
-        tk.Label(dialog, text="Sigma:").grid(row=3, column=0, sticky="e", padx=(12, 4))
-        tk.Entry(dialog, textvariable=sigma_text, width=8).grid(row=3, column=1, sticky="w", padx=(0, 12))
-
-        chosen = None
-        def on_ok():
-            nonlocal chosen
-            try:
-                values = (int(octaves_text.get()), int(scales_text.get()), float(sigma_text.get()))
-                if min(values) <= 0:
-                    raise ValueError
-            except ValueError:
-                messagebox.showerror(
-                    "Invalid values", "Octaves and scales must be positive integers; sigma a positive number.",
-                    parent=dialog)
-                return
-            chosen = values
-            dialog.destroy()
-
-        tk.Button(dialog, text="OK", command=on_ok).grid(row=4, column=0, columnspan=2, pady=12)
-        dialog.bind("<Return>", lambda event: on_ok())
-        dialog.wait_window()
-        return chosen
+    description = "Match the SIFT descriptors of two images and keep the matches consistent with RANSAC."
 
     def run(self, parent, document):
         image2 = open_image(parent, 'Add second image')
         if image2 is None:
             return None
-        name = self.choose_extractor(parent)
-        if name is None:
-            return None
         img = np.array(document.current.convert("L"), dtype=float) / 255
         img2 = np.array(image2.convert("L"), dtype=float) / 255
 
-        if name == "ORB":
-            max_ratio = 1.0
-            n_keypoints = simpledialog.askinteger("ORB ", "Maximum number of keypoints:", parent=parent, minvalue=1, initialvalue=200)
-            if n_keypoints is None:
-                return None
-            keypoints1, descriptors1 = descriptor_orb(img,n_keypoints)
-            keypoints2, descriptors2 = descriptor_orb(img2,n_keypoints)
-            settings = {"Max keypoints": n_keypoints}
-        elif name == "SIFT":
-            max_ratio = 0.8
-            # 0.8 ratio recommended for SIFT, remove irrelevant matches (D.G. Lowe, "Distinctive Image Features from Scale-Invariant Keypoints",
-            # International Journal of Computer Vision, 2004.)
-            vals = self.choose_siftvalues(parent)
-            if vals is None:
-                return None
-            n_octaves, n_scales, sigma = vals
-            keypoints1, descriptors1 = descriptor_sift(img, n_octaves, n_scales, sigma)
-            keypoints2, descriptors2 = descriptor_sift(img2, n_octaves, n_scales, sigma)
-            settings = {"Octaves": n_octaves, "Scales": n_scales, "Sigma": sigma}
-
-        matches = descriptor_match(descriptors1, descriptors2, cross_check=True, max_ratio = max_ratio)
+        keypoints1, descriptors1 = descriptor_sift(img)
+        keypoints2, descriptors2 = descriptor_sift(img2)
+        matches = descriptor_match(descriptors1, descriptors2, cross_check=True, max_ratio=MAX_RATIO)
+        inliers = ransac_inliers(keypoints1, keypoints2, matches)
 
         im1 = document.current.convert("L").convert("RGB")
         im2 = image2.convert("L").convert("RGB")
-        result = draw_matches(im1, im2, keypoints1, keypoints2, matches)
+        result = draw_matches(im1, im2, keypoints1, keypoints2, matches, inliers=inliers)
+        n_inliers = int(inliers.sum())
 
         return ToolResult(
             image=result,
-            message=f"Found {len(matches)} matches using {name}",
-            details={"Operation": "Descriptor matching", "Extractor": name, **settings,
-                        "Keypoints (image 1)": len(keypoints1),"Keypoints (image 2)": len(keypoints2),
-                        "Matches": len(matches)},
+            message=f"Found {len(matches)} matches ({n_inliers} RANSAC inliers) using SIFT",
+            details={"Operation": "Descriptor matching", "Extractor": "SIFT", "Max ratio": MAX_RATIO,
+                        "Keypoints (image 1)": len(keypoints1), "Keypoints (image 2)": len(keypoints2),
+                        "Matches": len(matches), "RANSAC inliers": n_inliers},
                 )

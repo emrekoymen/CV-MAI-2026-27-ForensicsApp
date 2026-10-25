@@ -3,7 +3,8 @@ from unittest.mock import patch
 
 import numpy as np
 from PIL import Image
-from skimage import data
+from skimage import data, transform
+from skimage.color import rgb2gray
 
 from forensics_app.core import ImageDocument
 from forensics_app.tools.descriptor_matching import (
@@ -14,12 +15,10 @@ def camera():
     return data.camera() / 255
 
 
-def run_tool(second_image, extractor="ORB", n_keypoints=100):
+def run_tool(second_image):
     document = ImageDocument()
     document.current = Image.fromarray(data.camera())
-    with patch("forensics_app.tools.descriptor_matching.open_image", return_value=second_image), \
-            patch.object(DescriptorMatchingTool, "choose_extractor", return_value=extractor), \
-            patch("tkinter.simpledialog.askinteger", return_value=n_keypoints):
+    with patch("forensics_app.tools.descriptor_matching.open_image", return_value=second_image):
         return DescriptorMatchingTool().run(None, document)
 
 
@@ -61,10 +60,20 @@ class DescriptorMatchingTests(unittest.TestCase):
         self.assertGreater(result.details["Matches"], 0)
         self.assertLessEqual(result.details["Matches"], result.details["Keypoints (image 1)"])
 
+    def test_ransac_keeps_most_matches_of_a_rotated_copy(self):
+        # A rotated and shifted copy fits one transform, so almost every match should be an inlier
+        rotated = transform.warp(camera(), transform.AffineTransform(rotation=0.1, translation=(30, -10)).inverse)
+        result = run_tool(Image.fromarray((rotated * 255).astype(np.uint8)))
+        self.assertGreater(result.details["RANSAC inliers"], 0.8 * result.details["Matches"])
+
+    def test_ransac_rejects_most_matches_of_an_unrelated_image(self):
+        # Matches between different images are mostly coincidences that fit no common transform
+        astronaut = (rgb2gray(data.astronaut()) * 255).astype(np.uint8)
+        result = run_tool(Image.fromarray(astronaut))
+        self.assertLess(result.details["RANSAC inliers"], 0.5 * result.details["Matches"])
+
     def test_cancel_returns_none(self):
         self.assertIsNone(run_tool(None))
-        self.assertIsNone(run_tool(Image.fromarray(data.camera()), extractor=None))
-        self.assertIsNone(run_tool(Image.fromarray(data.camera()), n_keypoints=None))
 
 
 if __name__ == "__main__":

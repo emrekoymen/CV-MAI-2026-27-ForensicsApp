@@ -32,11 +32,12 @@ class ClosestMatchTests(unittest.TestCase):
     def tearDownClass(cls):
         cls.temp.cleanup()
 
-    def run_tool(self, folder):
+    def run_tool(self, folder, metric="Total matches"):
         document = ImageDocument()
         document.current = self.query
         document.path = self.query_path
         with patch("tkinter.filedialog.askdirectory", return_value=folder), \
+                patch.object(ClosestMatchTool, "choose_metric", return_value=metric), \
                 patch("tkinter.messagebox.showinfo"):
             return ClosestMatchTool().run(None, document)
 
@@ -65,6 +66,12 @@ class ClosestMatchTests(unittest.TestCase):
         result = self.run_tool(str(self.folder))
         self.assertEqual(result.details["Best match"], "camera_crop.png")
         self.assertIn("camera_crop.png", result.message)
+
+    def test_ransac_ranking_also_finds_the_cropped_copy(self):
+        result = self.run_tool(str(self.folder), metric="RANSAC inliers")
+        self.assertEqual(result.details["Best match"], "camera_crop.png")
+        self.assertEqual(result.details["Ranked by"], "RANSAC inliers")
+        self.assertGreater(result.details["RANSAC inliers"], 0)
 
     def test_cancel_returns_none(self):
         self.assertIsNone(self.run_tool(""))
