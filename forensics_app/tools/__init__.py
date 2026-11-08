@@ -21,6 +21,9 @@ from .corner_detection import CornerDectectionTool
 from .descriptors import DescriptorsTool
 from .descriptor_matching import DescriptorMatchingTool
 from .closest_match import ClosestMatchTool
+from .face_detection import FaceDetectionTool, WebcamFaceDetectionTool
+from .eigenfaces import EigenfaceBuilderTool
+from .face_recognition import FaceRecognitionTool
 
 
 def build_tool_registry() -> ToolRegistry:
@@ -47,6 +50,10 @@ def build_tool_registry() -> ToolRegistry:
             DescriptorsTool(),
             DescriptorMatchingTool(),
             ClosestMatchTool(),
+            FaceDetectionTool(),
+            WebcamFaceDetectionTool(),
+            EigenfaceBuilderTool(),
+            FaceRecognitionTool(),
         ]
     )
 

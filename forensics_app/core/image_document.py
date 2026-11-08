@@ -50,8 +50,10 @@ class ImageDocument:
         self._redo.clear()
 
     def apply(self, image: Image.Image) -> None:
-        if self.current is None:
-            raise RuntimeError("Load an image before applying a result.")
+        if self.current is None:  # a tool that needs no image produced the first one
+            self.original = image.copy()
+            self.current = image.copy()
+            return
         self._undo.append(self.current.copy())
         self.current = image.copy()
         self._redo.clear()
