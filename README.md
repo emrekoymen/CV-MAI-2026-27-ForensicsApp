@@ -29,6 +29,15 @@ Ubuntu/Debian users may first need `sudo apt install python3-tk`.
 
 The complete student handout is [docs/STUDENT_GUIDE.md](docs/STUDENT_GUIDE.md).
 
+## Set 6 (faces) setup
+
+- Face detection: copy `face_detection_yunet_2023mar.onnx` from the Set 6 materials into `models/`.
+  Webcam: the *Face detection (webcam)* tool, or `python -m forensics_app.tools.face_detection` (press q to quit).
+- Eigenface builder: pick a folder (default `datasets/lfw/`); if it has no `train/`, LFW is downloaded
+  and saved as `train|test/<Person_Name>/<index>.png`. The model (mean, eigenfaces, coefficients, names)
+  is saved there as `eigenfaces.npz`.
+- Face recognition: open an image from `datasets/lfw/test/...`; the model is found in the folders above it.
+
 ## Useful commands
 
 ```
