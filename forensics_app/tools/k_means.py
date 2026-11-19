@@ -16,7 +16,7 @@ N_CLUSTERS = 30
 TRAIN_FRACTION = 0.7
 PATCH_SIZE = 32       # side of the square patch cropped around each visual word
 PANEL_SIZE = 128      # patches are upscaled to this size so they are visible in the grid
-DEFAULT_FOLDER = Path(__file__).resolve().parents[2] / "Caltech_101_subset"
+DEFAULT_FOLDER = Path(__file__).resolve().parents[2] / "datasets" / "Caltech_101_subset"  # not committed (datasets/ is ignored)
 CODEBOOK_FILE = "codebook.joblib"   # saved inside the dataset folder
 
 def split_dataset(folder, train_fraction=TRAIN_FRACTION, seed=0):

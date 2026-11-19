@@ -38,6 +38,14 @@ The complete student handout is [docs/STUDENT_GUIDE.md](docs/STUDENT_GUIDE.md).
   is saved there as `eigenfaces.npz`.
 - Face recognition: open an image from `datasets/lfw/test/...`; the model is found in the folders above it.
 
+## Set 7 (bag of visual words) setup
+
+- Copy the Caltech 101 subset from the Set 7 materials into `datasets/Caltech_101_subset/`,
+  one subfolder per class (`butterfly/`, `dalmatian/`, `kangaroo/`).
+- K-means clustering: pick that folder (the default); the codebook is built on first use and saved there
+  as `codebook.joblib`. Word histogram and classification reuse it, and the classifier is trained on first
+  use and saved as `classifier.joblib`. Neither file is committed; delete them to rebuild.
+
 ## Useful commands
 
 ```
