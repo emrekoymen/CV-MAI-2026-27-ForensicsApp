@@ -12,6 +12,14 @@ from forensics_app.tools.k_means import (CODEBOOK_FILE, N_CLUSTERS, PATCH_SIZE, 
     split_dataset)
 
 
+def setUpModule():
+    # Point the default dataset folder at a folder that exists, so the tests never depend on the real
+    # (uncommitted) Caltech subset and never open the "Dataset not found" message
+    patcher = patch("forensics_app.tools.k_means.DEFAULT_FOLDER", Path(tempfile.gettempdir()))
+    patcher.start()
+    unittest.addModuleCleanup(patcher.stop)
+
+
 def make_dataset(folder):
     """Two classes of 4 small crops each, plus a text file and an empty folder that should be ignored."""
     for name, pixels in (("astronaut", data.astronaut()), ("coffee", data.coffee())):

@@ -16,8 +16,18 @@ N_CLUSTERS = 30
 TRAIN_FRACTION = 0.7
 PATCH_SIZE = 32       # side of the square patch cropped around each visual word
 PANEL_SIZE = 128      # patches are upscaled to this size so they are visible in the grid
-DEFAULT_FOLDER = Path(__file__).resolve().parents[2] / "Caltech_101_subset"
+DEFAULT_FOLDER = Path(__file__).resolve().parents[2] / "datasets" / "Caltech_101_subset"  # not committed (datasets/ is ignored)
 CODEBOOK_FILE = "codebook.joblib"   # saved inside the dataset folder
+
+
+def default_folder(parent):
+    """Start folder for the dataset dialog; if it is missing, say where the dataset should go first."""
+    if not DEFAULT_FOLDER.is_dir():
+        messagebox.showinfo("Dataset not found",
+            f"The Caltech 101 subset was not found in:\n{DEFAULT_FOLDER}\n\n"
+            "Copy it from the Set 7 materials (one subfolder per class), see \"Set 7 setup\" in the README. "
+            "You can also pick another dataset folder in the next dialog.", parent=parent)
+    return DEFAULT_FOLDER
 
 def split_dataset(folder, train_fraction=TRAIN_FRACTION, seed=0):
     """Shuffle the images of every class subfolder and split them into train and test lists of (path, class).
@@ -84,7 +94,7 @@ class KMeansTool(ForensicsTool):
 
     def run(self, parent, document):
         folder = filedialog.askdirectory(title="Select dataset folder (one subfolder per class)", parent=parent,
-            initialdir=DEFAULT_FOLDER)
+            initialdir=default_folder(parent))
         if not folder:
             return None
         codebook_path = Path(folder) / CODEBOOK_FILE
