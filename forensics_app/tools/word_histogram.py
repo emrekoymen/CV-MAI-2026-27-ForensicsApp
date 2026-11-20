@@ -8,7 +8,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 from .base import ForensicsTool, ToolResult
 from .descriptor_matching import descriptor_sift
-from .k_means import CODEBOOK_FILE, DEFAULT_FOLDER, file_hash
+from .k_means import CODEBOOK_FILE, default_folder, file_hash
 
 IMAGE_HEIGHT = 600   # the image is scaled to this height, and the histogram drawn just as tall
 BAR_WIDTH = 20
@@ -91,7 +91,7 @@ def histogram_result(parent, document):
     or None if the user cancels or the image can't be used.
     """
     folder = filedialog.askdirectory(title="Select dataset folder with the codebook", parent=parent,
-        initialdir=DEFAULT_FOLDER)
+        initialdir=default_folder(parent))
     if not folder:
         return None
     codebook_path = Path(folder) / CODEBOOK_FILE
