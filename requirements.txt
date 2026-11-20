@@ -5,3 +5,4 @@ scikit-image
 matplotlib
 opencv-python>=4.8
 scikit-learn
+ultralytics

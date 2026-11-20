@@ -46,6 +46,18 @@ The complete student handout is [docs/STUDENT_GUIDE.md](docs/STUDENT_GUIDE.md).
   as `codebook.joblib`. Word histogram and classification reuse it, and the classifier is trained on first
   use and saved as `classifier.joblib`. Neither file is committed; delete them to rebuild.
 
+## Set 9 (object detection) setup
+
+Needs `ultralytics` (in `requirements.txt`; it also installs PyTorch). Nothing below is committed.
+
+- Object detection (YOLO11): copy `yolo11n.pt` (COCO-pretrained) from the Set 9 materials into `models/`.
+  Works on any image.
+- Blood cell detection (YOLO11): training stays in the Set 9 notebook. Copy its
+  `runs/detect/<run>/weights/best.pt` into `models/` as `blood_cells_yolo11n.pt`, and the dataset's
+  `test/` split (`images/` and `labels/`) into `datasets/blood_cells/test/`.
+  Open an image from `datasets/blood_cells/test/images/`: the ground truth is read from the matching
+  `labels/` file and shown next to the prediction, with per-image precision and recall (IoU >= 0.5).
+
 ## Useful commands
 
 ```

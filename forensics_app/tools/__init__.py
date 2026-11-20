@@ -27,6 +27,8 @@ from .classification import ClassificationTool
 from .face_detection import FaceDetectionTool, WebcamFaceDetectionTool
 from .eigenfaces import EigenfaceBuilderTool
 from .face_recognition import FaceRecognitionTool
+from .yolo_detection import YoloDetectionTool
+from .blood_cell_detection import BloodCellDetectionTool
 
 
 def build_tool_registry() -> ToolRegistry:
@@ -60,6 +62,8 @@ def build_tool_registry() -> ToolRegistry:
             WebcamFaceDetectionTool(),
             EigenfaceBuilderTool(),
             FaceRecognitionTool(),
+            YoloDetectionTool(),
+            BloodCellDetectionTool(),
         ]
     )
 
