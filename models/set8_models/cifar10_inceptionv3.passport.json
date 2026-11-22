@@ -1,0 +1,202 @@
+{
+  "passport_version": 1,
+  "name": "cifar10_inceptionv3",
+  "description": "ImageNet-pretrained InceptionV3 backbone + GAP + Dense(256) head, fine-tuned on CIFAR-10.",
+  "model_file": "cifar10_inceptionv3.keras",
+  "created": "2026-11-22T18:50:02+00:00",
+  "framework": {
+    "tensorflow": "2.21.0",
+    "keras": "3.13.2",
+    "python": "3.13.16"
+  },
+  "dataset": {
+    "name": "CIFAR-10",
+    "source": "keras.datasets.cifar10",
+    "original_image_size": [
+      32,
+      32,
+      3
+    ],
+    "samples": {
+      "train": 10000,
+      "validation": 5000,
+      "test": 10000
+    },
+    "split": "seeded random 5000-image validation split (seed 42) from the 50,000 training images; official 10,000-image test set"
+  },
+  "class_names": [
+    "airplane",
+    "automobile",
+    "bird",
+    "cat",
+    "deer",
+    "dog",
+    "frog",
+    "horse",
+    "ship",
+    "truck"
+  ],
+  "preprocessing": {
+    "color_mode": "RGB",
+    "input_size": [
+      139,
+      139
+    ],
+    "resize": "bilinear",
+    "dtype": "float32",
+    "formula": "x / 127.5 - 1.0",
+    "scaled_range": [
+      -1.0,
+      1.0
+    ],
+    "notes": "Resize the whole image to 139x139 (no cropping); same scaling as keras.applications.inception_v3.preprocess_input; add a batch dimension."
+  },
+  "architecture": {
+    "input_shape": [
+      139,
+      139,
+      3
+    ],
+    "parameters": 22329898,
+    "trainable_parameters": 11641994,
+    "feature_layer": "features",
+    "feature_dim": 256,
+    "layers": [
+      {
+        "name": "image",
+        "type": "InputLayer",
+        "parameters": 0
+      },
+      {
+        "name": "inception_v3",
+        "type": "Functional",
+        "parameters": 21802784
+      },
+      {
+        "name": "global_avg_pool",
+        "type": "GlobalAveragePooling2D",
+        "parameters": 0
+      },
+      {
+        "name": "dropout",
+        "type": "Dropout",
+        "parameters": 0
+      },
+      {
+        "name": "features",
+        "type": "Dense",
+        "parameters": 524544
+      },
+      {
+        "name": "dropout_1",
+        "type": "Dropout",
+        "parameters": 0
+      },
+      {
+        "name": "predictions",
+        "type": "Dense",
+        "parameters": 2570
+      }
+    ]
+  },
+  "training": {
+    "base_model": "InceptionV3 (ImageNet weights, include_top=False)",
+    "optimizer": "Adam",
+    "batch_size": 64,
+    "loss": "sparse_categorical_crossentropy",
+    "augmentation": "random horizontal flip (training batches only)",
+    "phases": [
+      {
+        "phase": 1,
+        "trainable": "classifier head only",
+        "learning_rate": 0.001,
+        "epochs": 5
+      },
+      {
+        "phase": 2,
+        "trainable": "head + InceptionV3 layers 249 onwards (top two blocks)",
+        "learning_rate": 1e-05,
+        "epochs": 5
+      }
+    ],
+    "epochs_run": 10,
+    "history": {
+      "phase": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        2,
+        2,
+        2,
+        2,
+        2
+      ],
+      "accuracy": [
+        0.6646000146865845,
+        0.7681000232696533,
+        0.7857000231742859,
+        0.8072999715805054,
+        0.8113999962806702,
+        0.7473000288009644,
+        0.8181999921798706,
+        0.8432999849319458,
+        0.8622000217437744,
+        0.8830000162124634
+      ],
+      "loss": [
+        1.0692003965377808,
+        0.7110579609870911,
+        0.6309545040130615,
+        0.5657536387443542,
+        0.5475424528121948,
+        0.8361853361129761,
+        0.5810451507568359,
+        0.48886775970458984,
+        0.42116522789001465,
+        0.35625243186950684
+      ],
+      "val_accuracy": [
+        0.769599974155426,
+        0.7961999773979187,
+        0.8040000200271606,
+        0.8080000281333923,
+        0.8151999711990356,
+        0.800000011920929,
+        0.8166000247001648,
+        0.8235999941825867,
+        0.8294000029563904,
+        0.8335999846458435
+      ],
+      "val_loss": [
+        0.6832731366157532,
+        0.6088204383850098,
+        0.5835171341896057,
+        0.5692590475082397,
+        0.5500231981277466,
+        0.5901395678520203,
+        0.5544500946998596,
+        0.5203331112861633,
+        0.4976385235786438,
+        0.4815860986709595
+      ]
+    }
+  },
+  "evaluation": {
+    "test_accuracy": 0.8369,
+    "test_loss": 0.4938420057296753,
+    "per_class_accuracy": {
+      "airplane": 0.868,
+      "automobile": 0.907,
+      "bird": 0.757,
+      "cat": 0.726,
+      "deer": 0.803,
+      "dog": 0.793,
+      "frog": 0.876,
+      "horse": 0.847,
+      "ship": 0.912,
+      "truck": 0.88
+    }
+  }
+}

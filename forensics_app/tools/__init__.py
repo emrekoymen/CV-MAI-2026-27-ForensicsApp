@@ -27,6 +27,8 @@ from .classification import ClassificationTool
 from .face_detection import FaceDetectionTool, WebcamFaceDetectionTool
 from .eigenfaces import EigenfaceBuilderTool
 from .face_recognition import FaceRecognitionTool
+from .cnn_classification import CnnClassificationTool, ModelPassportTool
+from .feature_projection import FeatureProjectionTool
 
 
 def build_tool_registry() -> ToolRegistry:
@@ -60,6 +62,9 @@ def build_tool_registry() -> ToolRegistry:
             WebcamFaceDetectionTool(),
             EigenfaceBuilderTool(),
             FaceRecognitionTool(),
+            ModelPassportTool(),
+            CnnClassificationTool(),
+            FeatureProjectionTool(),
         ]
     )
 
