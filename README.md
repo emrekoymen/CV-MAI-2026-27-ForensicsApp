@@ -46,6 +46,18 @@ The complete student handout is [docs/STUDENT_GUIDE.md](docs/STUDENT_GUIDE.md).
   as `codebook.joblib`. Word histogram and classification reuse it, and the classifier is trained on first
   use and saved as `classifier.joblib`. Neither file is committed; delete them to rebuild.
 
+## Set 8 (CNN classification) setup
+
+- Train the models in Colab with `notebooks/set8_train_models.ipynb` (GPU runtime, Run all). It downloads
+  `set8_models.zip`; unzip it into `models/` so the files are in `models/set8_models/`:
+  `cifar10_small_cnn` (CNN from scratch) and `cifar10_inceptionv3` (transfer learning), each as `.keras`
+  (architecture + weights), `.passport.json` (dataset, sample sizes, class names, preprocessing, training
+  history, test accuracy) and `.test_features.npz` (feature vectors of the 10,000 CIFAR-10 test images).
+  Only the passports are committed; the `.keras` and `.npz` files come from the notebook.
+- *Model passport*: shows the passport and the training curves of a model.
+- *CNN classification*: classifies the loaded image, preprocessed exactly as the passport says.
+- *Feature projection (t-SNE, UMAP)*: projects the saved test-set features to 2D; needs no TensorFlow.
+
 ## Set 9 (object detection) setup
 
 Needs `ultralytics` (in `requirements.txt`; it also installs PyTorch). Nothing below is committed.

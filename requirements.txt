@@ -6,3 +6,5 @@ matplotlib
 opencv-python>=4.8
 scikit-learn
 ultralytics
+tensorflow>=2.16
+umap-learn
