@@ -31,6 +31,7 @@ from .yolo_detection import YoloDetectionTool
 from .blood_cell_detection import BloodCellDetectionTool
 from .cnn_classification import CnnClassificationTool, ModelPassportTool
 from .feature_projection import FeatureProjectionTool
+from .clip_classification import ClipZeroShotTool
 
 
 def build_tool_registry() -> ToolRegistry:
@@ -69,6 +70,7 @@ def build_tool_registry() -> ToolRegistry:
             ModelPassportTool(),
             CnnClassificationTool(),
             FeatureProjectionTool(),
+            ClipZeroShotTool(),
         ]
     )
 
