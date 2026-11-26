@@ -70,6 +70,19 @@ Needs `ultralytics` (in `requirements.txt`; it also installs PyTorch). Nothing b
   Open an image from `datasets/blood_cells/test/images/`: the ground truth is read from the matching
   `labels/` file and shown next to the prediction, with per-image precision and recall (IoU >= 0.5).
 
+## Set 10 (CLIP zero-shot classification) setup
+
+Needs `transformers` and `torch` (both via `requirements.txt`). Nothing is trained or exported: the pretrained
+`openai/clip-vit-base-patch32` (~600 MB) is downloaded by Hugging Face the first time the tool runs and cached
+in `~/.cache/huggingface`; later runs load it from there.
+
+- *CLIP zero-shot classification*: write the classes (one per line, as many as you want) and a caption template
+  such as `a photo of a {}.`, or tick prompt ensembling to average five photo templates. The result shows the
+  probability of every class and, in the details, the raw cosine similarity. Softmax always picks one of the
+  classes, so add an `other`-style class when none may fit.
+- Optional, to work offline: save the model once into `models/clip-vit-base-patch32/` and the tool uses it:
+  `python -c "from transformers import CLIPModel, CLIPProcessor as P; n='openai/clip-vit-base-patch32'; d='models/clip-vit-base-patch32'; CLIPModel.from_pretrained(n).save_pretrained(d); P.from_pretrained(n).save_pretrained(d)"`
+
 ## Useful commands
 
 ```
